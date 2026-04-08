@@ -21,25 +21,21 @@ app.add_middleware(
 )
 
 # =========================
-# MODEL DOWNLOAD (ROBUST)
+# MODEL DOWNLOAD (HUGGINGFACE)
 # =========================
 MODEL_PATH = "model/model.h5"
 
 def download_model():
-    print("⬇️ Downloading model...")
+    print("⬇️ Downloading model from HuggingFace...")
 
-    url = "https://drive.google.com/uc?export=download&id=1wUz7ZZS-b0m7bqFYuMkENedUYJ1BiufI"
-
-    session = requests.Session()
-    response = session.get(url, stream=True)
-
-    # Handle large file warning from Google
-    for key, value in response.cookies.items():
-        if key.startswith("download_warning"):
-            url_confirm = url + "&confirm=" + value
-            response = session.get(url_confirm, stream=True)
+    url = "https://huggingface.co/Aryan-2906/skin-cancer-model/resolve/main/model.h5"
 
     os.makedirs("model", exist_ok=True)
+
+    response = requests.get(url, stream=True)
+
+    if response.status_code != 200:
+        raise Exception("❌ Failed to download model")
 
     with open(MODEL_PATH, "wb") as f:
         for chunk in response.iter_content(1024 * 1024):
@@ -60,7 +56,7 @@ model = tf.keras.models.load_model(MODEL_PATH)
 print("✅ Model loaded successfully!")
 
 # =========================
-# PREPROCESS
+# PREPROCESS FUNCTION
 # =========================
 def preprocess_image(image):
     image = image.resize((224, 224))
