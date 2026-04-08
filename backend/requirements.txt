@@ -4,4 +4,4 @@ numpy==1.23.5
 pillow
 tensorflow==2.12.0
 python-multipart
-gdown
+requests
