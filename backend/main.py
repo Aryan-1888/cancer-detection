@@ -4,10 +4,14 @@ import numpy as np
 from PIL import Image
 import io
 import tensorflow as tf
+import os
+import gdown
 
 app = FastAPI()
 
-# CORS (allow frontend)
+# =========================
+# CORS (Allow frontend)
+# =========================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,12 +21,26 @@ app.add_middleware(
 )
 
 # =========================
-# LOAD MODEL
+# MODEL DOWNLOAD (IMPORTANT)
 # =========================
-model = tf.keras.models.load_model("model/model.h5")
+MODEL_PATH = "model/model.h5"
+
+if not os.path.exists(MODEL_PATH):
+    os.makedirs("model", exist_ok=True)
+    print("⬇️ Downloading model...")
+
+    url = "https://drive.google.com/uc?id=1wUz7ZZS-b0m7bqFYuMkENedUYJ1BiufI"
+    gdown.download(url, MODEL_PATH, quiet=False)
 
 # =========================
-# PREPROCESS
+# LOAD MODEL
+# =========================
+print("🔄 Loading model...")
+model = tf.keras.models.load_model(MODEL_PATH)
+print("✅ Model loaded successfully!")
+
+# =========================
+# PREPROCESS FUNCTION
 # =========================
 def preprocess_image(image):
     image = image.resize((224, 224))
@@ -31,7 +49,7 @@ def preprocess_image(image):
     return image
 
 # =========================
-# ROUTE
+# ROUTES
 # =========================
 @app.get("/")
 def home():
