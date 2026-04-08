@@ -24,7 +24,7 @@ function App() {
 
     try {
       const res = await axios.post(
-        "http://127.0.0.1:8000/predict",
+        "https://cancer-detection-4-g11i.onrender.com/predict",
         formData
       );
       setResult(res.data);
