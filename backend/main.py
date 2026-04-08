@@ -5,7 +5,7 @@ from PIL import Image
 import io
 import tensorflow as tf
 import os
-import gdown
+import requests
 
 app = FastAPI()
 
@@ -21,16 +21,36 @@ app.add_middleware(
 )
 
 # =========================
-# MODEL DOWNLOAD (IMPORTANT)
+# MODEL DOWNLOAD (ROBUST)
 # =========================
 MODEL_PATH = "model/model.h5"
 
-if not os.path.exists(MODEL_PATH):
-    os.makedirs("model", exist_ok=True)
+def download_model():
     print("⬇️ Downloading model...")
 
-    url = "https://drive.google.com/uc?id=1wUz7ZZS-b0m7bqFYuMkENedUYJ1BiufI"
-    gdown.download(url, MODEL_PATH, quiet=False, fuzzy=True)
+    url = "https://drive.google.com/uc?export=download&id=1wUz7ZZS-b0m7bqFYuMkENedUYJ1BiufI"
+
+    session = requests.Session()
+    response = session.get(url, stream=True)
+
+    # Handle large file warning from Google
+    for key, value in response.cookies.items():
+        if key.startswith("download_warning"):
+            url_confirm = url + "&confirm=" + value
+            response = session.get(url_confirm, stream=True)
+
+    os.makedirs("model", exist_ok=True)
+
+    with open(MODEL_PATH, "wb") as f:
+        for chunk in response.iter_content(1024 * 1024):
+            if chunk:
+                f.write(chunk)
+
+    print("✅ Model downloaded!")
+
+# Download if not exists
+if not os.path.exists(MODEL_PATH):
+    download_model()
 
 # =========================
 # LOAD MODEL
@@ -40,7 +60,7 @@ model = tf.keras.models.load_model(MODEL_PATH)
 print("✅ Model loaded successfully!")
 
 # =========================
-# PREPROCESS FUNCTION
+# PREPROCESS
 # =========================
 def preprocess_image(image):
     image = image.resize((224, 224))
